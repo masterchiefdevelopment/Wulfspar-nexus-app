@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -15,6 +15,14 @@ export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   async function handleSignOut() {
     await signOut()
@@ -32,7 +40,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop links */}
-        <div style={styles.links}>
+        <div style={{ ...styles.links, ...(isMobile ? styles.hidden : {}) }}>
           {NAV_LINKS.map(({ to, label }) => (
             <Link
               key={to}
@@ -53,7 +61,7 @@ export default function Navbar() {
         </div>
 
         {/* Auth */}
-        <div style={styles.auth}>
+        <div style={{ ...styles.auth, ...(isMobile ? styles.hidden : {}) }}>
           {user ? (
             <>
               <Link to="/profile" style={styles.profileBtn}>
@@ -82,7 +90,7 @@ export default function Navbar() {
 
         {/* Mobile hamburger */}
         <button
-          style={styles.hamburger}
+          style={{ ...styles.hamburger, ...(isMobile ? styles.hamburgerVisible : {}) }}
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -162,7 +170,9 @@ const styles = {
     height: '64px',
     display: 'flex',
     alignItems: 'center',
-    gap: '2rem',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: '1rem',
   },
   logo: {
     display: 'flex',
@@ -236,6 +246,12 @@ const styles = {
     padding: '0.25rem',
     marginLeft: '0.5rem',
     cursor: 'pointer',
+  },
+  hamburgerVisible: {
+    display: 'block',
+  },
+  hidden: {
+    display: 'none',
   },
   mobileMenu: {
     borderTop: '1px solid var(--border)',
